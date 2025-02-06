@@ -10,6 +10,7 @@ using UnityEngine.SceneManagement;
 public class GameManager : MonoBehaviour
 {
     int valueWinCondition = 2048;
+    float timeToMove = 0.1f;
 
     [SerializeField] Cell cellPrefab;
     [SerializeField] Block blockPrefab;
@@ -121,22 +122,25 @@ public class GameManager : MonoBehaviour
 
         if (freeCells.Count > 0)
         {
-                for (int i = 0; i < amount; i++)
-                {
-                    int index = UnityEngine.Random.Range(0, freeCells.Count);
+            for (int i = 0; i < amount; i++)
+            {
+                int index = UnityEngine.Random.Range(0, freeCells.Count);
 
-                    Block newBlock = Instantiate(blockPrefab, backgroundPanel);
-                    //RectTransform newBlockRectTransform = (RectTransform)newBlock.transform;
-                    //newBlockRectTransform.anchoredPosition = freeCells[index].transform.position;
-                    newBlock.transform.position = freeCells[index].transform.position;
-                    newBlock.transform.rotation = Quaternion.identity;
+                Block newBlock = Instantiate(blockPrefab, backgroundPanel);
+                //RectTransform newBlockRectTransform = (RectTransform)newBlock.transform;
+                //newBlockRectTransform.anchoredPosition = freeCells[index].transform.position;
+                newBlock.transform.position = freeCells[index].transform.position;
+                newBlock.transform.rotation = Quaternion.identity;
 
-                    newBlock.InitializeBlock(GetBlockTypeByValue(UnityEngine.Random.value > 0.8f ? 4 : 2));
-                    newBlock.SetCell(freeCells[index]);
-                    freeCells[index].FillCell(newBlock);
+                newBlock.InitializeBlock(GetBlockTypeByValue(UnityEngine.Random.value > 0.8f ? 4 : 2));
+                newBlock.SetCell(freeCells[index]);
+                freeCells[index].FillCell(newBlock);
 
-                    _blocks.Add(newBlock);
-                }
+                _blocks.Add(newBlock);
+
+                newBlock.transform.localScale = new Vector3(0.8f, 0.8f, 0.8f);
+                newBlock.transform.DOScale(1.0f, 0.2f).SetEase(Ease.InOutBounce);
+            }
         }
         else
         {
@@ -158,6 +162,9 @@ public class GameManager : MonoBehaviour
         cellToSpawnBlock.FillCell(newBlock);
 
         _blocks.Add(newBlock);
+
+        newBlock.transform.localScale = new Vector3(0.9f, 0.9f, 0.9f);
+        newBlock.transform.DOScale(1.0f, 0.2f).SetEase(Ease.OutBounce);
 
         if (combinedValue == valueWinCondition)
         {
@@ -242,14 +249,14 @@ public class GameManager : MonoBehaviour
                         nextCell.ClearCell();
                         nextCell = possibleCell;
                                                 
-                        block.transform.DOMove(possibleCell.transform.position, 0.5f).SetEase(Ease.InSine).OnComplete(() => MergeBlock(possibleCell.OccupiedBlock, block));
+                        block.transform.DOMove(possibleCell.transform.position, timeToMove).SetEase(Ease.InSine).OnComplete(() => MergeBlock(possibleCell.OccupiedBlock, block));
 
                         blocksMovedCount++;
                     }
                 }
             }while (nextCell != block.CurrentCell); //If nextCell did not change, end the loop
 
-            sequence.Insert(0, block.transform.DOMove(block.CurrentCell.transform.position, 0.5f).SetEase(Ease.InSine));
+            sequence.Insert(0, block.transform.DOMove(block.CurrentCell.transform.position, timeToMove).SetEase(Ease.InSine));
         }
 
         sequence.OnComplete(() => 
